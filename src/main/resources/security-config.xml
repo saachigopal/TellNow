@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans 
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/security
+		http://www.springframework.org/schema/security/spring-security-3.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-4.0.xsd">
+
+	<bean id="authTokenFilter" class="com.tellnow.api.security.TokenAuthenticationProcessingFilter"/>
+	 <!-- Entry point is what Spring should do when not authorized, we use our simple
+     one instead of the default (the default implementation asks for username&password, while we use token) -->
+    <security:http entry-point-ref="tokenEntryPoint" use-expressions="true">
+
+        <!-- Default rules for patterns. More fine-grained can (and should) be specified in the controllers -->
+        <security:intercept-url pattern="/api/securitycode/**" access="permitAll" />
+        <security:intercept-url pattern="/api/token/**" access="permitAll" />
+        <security:intercept-url pattern="/api/login/**" access="permitAll" />
+        <security:intercept-url pattern="/api/logout/**" access="permitAll" />
+        <security:intercept-url pattern="/api-docs/**" access="permitAll" />
+        <security:intercept-url pattern="/docs/**" access="permitAll" />
+        <security:intercept-url pattern="/api/info/**" access="permitAll" />
+        <security:intercept-url pattern="/**" access="isFullyAuthenticated()" />
+		<security:custom-filter ref="authTokenFilter" after="BASIC_AUTH_FILTER" />
+    </security:http>
+
+    <!-- Activate @PreAuthorize annotation for more fine-grained method access -->
+    <security:global-method-security pre-post-annotations="enabled">
+		<security:expression-handler ref="expressionHandler" />
+	</security:global-method-security>
+
+	<bean id="expressionHandler" class="org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler">
+		<property name="permissionEvaluator" ref="permissionEvaluator" />
+	</bean>
+
+	<bean id="permissionEvaluator" class="com.tellnow.api.security.BasePermissionEvaluator" />
+
+    <!-- Add our token stuff to the manager -->
+    <security:authentication-manager alias="authenticationManager">
+        <security:authentication-provider ref="tokenAuthenticationProvider" />
+    </security:authentication-manager>
+
+    <!-- Instantiation of our auth classes -->
+    <bean id="tokenEntryPoint" class="com.tellnow.api.security.TokenEntryPoint"/>
+    
+</beans:beans>

@@ -1,0 +1,1 @@
+UPDATE question AS q  SET q.status = 1;
