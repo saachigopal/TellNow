@@ -21,8 +21,8 @@ public class CleanerServiceImpl implements CleanerService {
 	Logger logger = LoggerFactory.getLogger(getClass());
 	
 	private static final boolean DEFAULT_ACTIVE_VALUE = true;
-	private static final int DEFAULT_OLDER_THAN_VALUE = 2;
-	private static final String DEFAULT_CRON_EXPRESSION_VALUE = "0 * * * * ?";
+	private static final int DEFAULT_OLDER_THAN_VALUE = 15;
+	private static final String DEFAULT_CRON_EXPRESSION_VALUE = "0 0 1 * * ?";
 
 	private static final String NAME_ACTIVE_ENV = "cleaner.active";
 	private static final String NAME_OLDER_THAN_ENV = "cleaner.older.than";
@@ -100,6 +100,8 @@ public class CleanerServiceImpl implements CleanerService {
 		}
 		
 		if (active || cronExpression.equalsIgnoreCase("manual")) {
+			logger.info("");
+			logger.info("===================================================================================================");
 			logger.info("========== CLEANER SERVICE STARTED AT " + new DateTime() + " ==========");
 			logger.info("==========    Whith parameters: ");
 			logger.info("==========       * " + NAME_ACTIVE_ENV + ": " + active);
@@ -121,7 +123,12 @@ public class CleanerServiceImpl implements CleanerService {
 			logger.info("========== CLEANER SERVICE DELETED " + mediaFilesDeleted + " ORPHANED MEDIA FILES ==========");
 
 			logger.info("========== CLEANER SERVICE ENDED AT " + new DateTime() + " ==========");
+
+			logger.info("===================================================================================================");
+			logger.info("");
 		} else {
+			logger.info("");
+			logger.info("===================================================================================================");
 			logger.info("========== CLEANER SERVICE NOT STARTED AS SCHEDULED " +
 				"(" + cronExpression + ") " +
 				"AT " + new DateTime() + " " +
@@ -130,6 +137,8 @@ public class CleanerServiceImpl implements CleanerService {
 			logger.info("==========       * " + NAME_ACTIVE_ENV + ": " + active);
 			logger.info("==========       * " + NAME_OLDER_THAN_ENV + ": " + olderThan);
 			logger.info("==========       * " + NAME_CRON_EXPRESSION_ENV + ": " + cronExpression);
+			logger.info("===================================================================================================");
+			logger.info("");
 		}
 	}
 	
