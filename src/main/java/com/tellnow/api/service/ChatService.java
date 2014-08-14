@@ -1,6 +1,7 @@
 package com.tellnow.api.service;
 
 import java.util.Collection;
+import java.util.Date;
 
 import com.tellnow.api.domain.Chat;
 import com.tellnow.api.domain.TellnowProfile;
@@ -34,4 +35,10 @@ public interface ChatService {
 	Long getNumberSentBetween(TellnowProfile sender, TellnowProfile sendee);
 	
 	Chat save(Chat chat);
+	
+	int delete(Chat chat);
+	
+	int delete(Collection<Chat> chats);
+	
+	int deleteChatMessagesOlderThan(Date date);
 }

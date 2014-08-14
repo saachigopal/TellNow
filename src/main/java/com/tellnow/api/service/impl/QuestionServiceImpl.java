@@ -91,6 +91,17 @@ public class QuestionServiceImpl implements QuestionService {
 	}
 
 	@Override
+	public Set<Question> getQuestionsOlderThan(Date date) {
+		Set<Question> result = null;
+		try {
+			result = questionRepository.getQuestionsOlderThan(date);
+		} catch (Exception e) {
+			logger.error(e.getMessage());// logger.error(e.getMessage(), e);
+		}
+		return result;
+	}
+
+	@Override
 	public Page<Question> getQuestions(Integer pageNumber, SortQuestionsBy sortBy) {
 
 		PageRequest request = new PageRequest(pageNumber, itemsPerPage, Sort.Direction.DESC, sortBy.getField());
@@ -219,6 +230,39 @@ public class QuestionServiceImpl implements QuestionService {
 		}
 		return true;
 	}
+
+	@Override
+	public boolean delete(Set<Question> questions) {
+		if (questions != null && !questions.isEmpty()) {
+			for (Question question : questions) {
+				try {
+					questionRepository.delete(question);
+				} catch (Exception e) {
+					logger.error(e.getMessage());// logger.error(e.getMessage(), e);
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	
+	@Override
+	public int deleteQuestionsOlderThan(Date date) {
+		int numberOdDeletions = 0;
+		Set<Question> questions = questionRepository.getQuestionsOlderThan(date);
+		if (questions != null && !questions.isEmpty()) {
+			for (Question question : questions) {
+				try {
+					questionRepository.delete(question);
+					numberOdDeletions++;
+				} catch (Exception e) {
+					logger.error(e.getMessage());// logger.error(e.getMessage(), e);
+				}
+			}
+		}
+		return numberOdDeletions;
+	}
+
 
 	public TellnowProfile getOwner(String reportedEntity) {
 		return questionRepository.findByQuestionPublicId(reportedEntity).getOwner();

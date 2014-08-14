@@ -37,13 +37,13 @@
     		<artifactId>pushy</artifactId>
     		<version>0.3</version>
 		</dependency>
-		<!-- 
+		 
 		<dependency>
   		<groupId>org.apache.httpcomponents</groupId>
   			<artifactId>httpclient</artifactId>
   			<version>4.3.4</version>
 		</dependency>
-		 -->
+		
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
@@ -57,6 +57,12 @@
 			<artifactId>spring-webmvc</artifactId>
 			<version>4.0.2.RELEASE</version>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context-support</artifactId>
+			<version>4.0.6.RELEASE</version>
+		</dependency>		
+		
 		<dependency>
 		<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
@@ -104,6 +110,13 @@
 			<artifactId>spring-aop</artifactId>
 			<version>4.0.3.RELEASE</version>
 		</dependency>
+		<!-- quartz -->
+		<dependency>
+    		<groupId>org.quartz-scheduler</groupId>
+    		<artifactId>quartz</artifactId>
+    		<version>2.2.1</version>
+		</dependency>
+		
 		<!-- social -->
 		<dependency>
 			<groupId>org.springframework.social</groupId>

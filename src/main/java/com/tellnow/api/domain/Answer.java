@@ -71,7 +71,7 @@ public class Answer {
 	@IndexedEmbedded(depth = 2)
 	private Question question;
 
-	@ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+	@ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
 	@JoinTable(name = "answer_media", joinColumns = { @JoinColumn(name = "answer_id", referencedColumnName = "id") }, inverseJoinColumns = { @JoinColumn(name = "media_id", referencedColumnName = "id") })
 	private Set<MediaFile> mediaFiles;// picture, sound, video
 

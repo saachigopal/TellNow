@@ -52,6 +52,7 @@ public class Notification {
 	public Notification(TellnowProfile profile, Date date) {
 		this.profile = profile;
 		this.date = date;
+		this.dateAsString = date.toGMTString();
 		this.notificationId = UUID.randomUUID().toString();
 	}
 

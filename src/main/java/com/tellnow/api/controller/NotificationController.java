@@ -20,7 +20,7 @@ import com.tellnow.api.TellnowError;
 import com.tellnow.api.TellnowResponse;
 import com.tellnow.api.domain.Notification;
 import com.tellnow.api.exceptions.handling.GlobalErrorCodes;
-import com.tellnow.api.repository.NotificationRepository;
+import com.tellnow.api.repository.PushNotificationRepository;
 import com.tellnow.api.security.AuthServiceImpl;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
@@ -38,7 +38,7 @@ public class NotificationController {
 	private AuthServiceImpl authService; 
 	
 	@Autowired
-	NotificationRepository notificationRepository;
+	PushNotificationRepository notificationRepository;
 	
 	@RequestMapping(value = "/api/notification", method = RequestMethod.GET, produces = { MediaType.APPLICATION_JSON_VALUE })
 	@ApiOperation(value = "get all notification", notes = "return notification of one user")

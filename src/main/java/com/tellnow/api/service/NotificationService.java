@@ -11,5 +11,4 @@ public interface NotificationService {
 	Set<Long> nomineeRespondersforQuestion(Question question, Integer maxNumber) throws InvalidDeviceException;
 
 	boolean notifyResponderCandidates(Set<TellnowProfile> candidates, Question question) throws InvalidDeviceException;
-
 }

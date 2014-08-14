@@ -1,5 +1,6 @@
 package com.tellnow.api.repository;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -32,4 +33,7 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
 	
 	@Query("SELECT q FROM Question q WHERE q.id NOT IN (SELECT a.id.questionId FROM AnswerReward a) AND q.id IN :topicIds")
 	List<Question> getQuestionsWithoutReward(@Param("topicIds") Set<Long> topicIds);
+	
+	@Query("SELECT q FROM Question q WHERE q.creationDate <  :creationDate")
+	Set<Question> getQuestionsOlderThan(@Param("creationDate") Date creationDate);
 }

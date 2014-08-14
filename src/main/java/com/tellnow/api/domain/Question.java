@@ -80,7 +80,7 @@ public class Question {
 	@JoinTable(name = "question_media", joinColumns = { @JoinColumn(name = "question_id", referencedColumnName = "id") }, inverseJoinColumns = { @JoinColumn(name = "media_id", referencedColumnName = "id") })
 	private Collection<MediaFile> mediaFiles;// picture, sound, video
 
-	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REFRESH)
+	@OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.REFRESH, CascadeType.REMOVE})
 	@JoinColumn(name = "question_id", referencedColumnName = "id")
 	@NotFound(action = NotFoundAction.IGNORE)
 	private Set<Answer> answers;

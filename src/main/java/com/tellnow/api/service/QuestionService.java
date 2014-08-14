@@ -1,5 +1,8 @@
 package com.tellnow.api.service;
 
+import java.util.Date;
+import java.util.Set;
+
 import org.springframework.data.domain.Page;
 
 import com.tellnow.api.domain.Question;
@@ -12,6 +15,8 @@ public interface QuestionService {
 	Question getQuestion(Long id);
 
 	Question getQuestion(String questionPublicId);
+	
+	Set<Question> getQuestionsOlderThan(Date date);
 
 	Page<Question> getQuestions(Integer pageNumber, SortQuestionsBy sortBy);
 
@@ -24,5 +29,8 @@ public interface QuestionService {
 	Question delete(Long id);
 
 	boolean delete(Question question);
-
+	
+	boolean delete(Set<Question> questions);
+	
+	int deleteQuestionsOlderThan(Date date);
 }

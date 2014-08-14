@@ -1,6 +1,8 @@
 package com.tellnow.api.service;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Set;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,6 +20,16 @@ public interface MediaService {
 	MediaFile saveFile(String name, MultipartFile file, TellnowMediaType type) throws IOException, NotAllowedMediaTypeException;
 
 	MediaFile getFile(String path);
+	
+	MediaFile getFile(String path, String md5sum);
 
 	Long getMediaFileId(String md5Sum);
+	
+	Set<MediaFile> findOrphaned();
+	
+	int delete(MediaFile mediaFile);
+	
+	int delete(Collection<MediaFile> mediaFiles);
+	
+	int deleteOrphaned();
 }

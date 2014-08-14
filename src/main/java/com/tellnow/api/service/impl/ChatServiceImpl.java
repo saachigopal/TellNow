@@ -1,9 +1,13 @@
 package com.tellnow.api.service.impl;
 
 import java.util.Collection;
+import java.util.Date;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -19,6 +23,8 @@ import com.tellnow.api.service.ChatService;
 @Service
 public class ChatServiceImpl implements ChatService {
 
+	Logger logger = LoggerFactory.getLogger(getClass());
+	
 	@Autowired
 	EntityManager em;
 
@@ -142,5 +148,34 @@ public class ChatServiceImpl implements ChatService {
 		} else {
 			return new Long(0);
 		}
+	}
+
+	@Override
+	public int deleteChatMessagesOlderThan(Date date) {
+		Set<Chat> chats = chatRepository.findOlderThan(date);
+		return delete(chats);
+	}
+
+
+	@Override
+	public int delete(Chat chat) {
+		try {
+			chatRepository.delete(chat);
+			return 1;
+		} catch (Exception e) {
+			logger.warn("Could not delete a chat message: " + e.getMessage());
+			return 0;
+		}
+	}
+
+
+	@Override
+	public int delete(Collection<Chat> chats) {
+		int deletedNumber = 0;
+		for (Chat chat : chats) {
+			int del = delete(chat);
+			deletedNumber = deletedNumber + del;
+		}
+		return deletedNumber;
 	}
 }

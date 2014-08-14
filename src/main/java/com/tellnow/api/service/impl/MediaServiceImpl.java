@@ -5,7 +5,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -120,8 +122,53 @@ public class MediaServiceImpl implements MediaService {
 	}
 
 	@Override
+	public MediaFile getFile(String path, String md5sum) {
+
+		return mediaFileRepository.findByPathAndMd5Sum(path, md5sum);
+	}
+
+	@Override
 	public Long getMediaFileId(String md5Sum) {
 		return mediaFileRepository.getId(md5Sum);
+	}
+
+	@Override
+	public Set<MediaFile> findOrphaned() {
+		return mediaFileRepository.findOrphaned();
+	}
+
+	@Override
+	public int delete(MediaFile mediaFile) {
+		try {
+			mediaFileRepository.delete(mediaFile);
+			return 1;
+		} catch (Exception e) {
+			logger.warn("Could not delete mediaFile: " + mediaFile.getPath());
+			logger.warn("The reason was: " + e.getMessage());
+			return 0;
+		}
+	}
+
+	@Override
+	public int delete(Collection<MediaFile> mediaFiles) {
+		int deletedNumber = 0;
+		for (MediaFile mediaFile : mediaFiles) {
+			int del = delete(mediaFile);
+			deletedNumber = deletedNumber + del;
+		}
+		return deletedNumber;
+	}
+
+	@Override
+	public int deleteOrphaned() {
+		int deletedNumber = 0;
+		try {
+			Set<MediaFile> toDelete = findOrphaned();
+			deletedNumber = delete(toDelete);
+		} catch (Exception e) {
+			logger.warn("An exceprion occured when tried to delete orphaned media files: " + e.getMessage());
+		}
+		return deletedNumber;
 	}
 
 }
