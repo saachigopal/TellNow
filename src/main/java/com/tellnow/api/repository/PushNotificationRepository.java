@@ -26,6 +26,9 @@ public interface PushNotificationRepository extends JpaRepository<Notification, 
 	@Query(value = "SELECT * FROM notification WHERE profile_id=:profileId and visible=b'1' ORDER BY date DESC", nativeQuery = true)
 	List<Notification> findVisibleOnesByProfileIdDesc(@Param("profileId") Long profileId);
 
+	@Query(value = "SELECT * FROM notification WHERE profile_id=:profileId and visible=b'1' and date > :timestamp ORDER BY date DESC", nativeQuery = true)
+	List<Notification> findVisibleOnesByProfileIdNewerThanDesc(@Param("profileId") Long profileId, @Param("timestamp") Date newerThan);
+
 	@Query("SELECT n FROM Notification n WHERE n.date <  :date")
 	List<Notification> getNotificationsOlderThan(@Param("date") Date date);
 
