@@ -46,6 +46,9 @@ public class Notification {
 	@JsonProperty("id")
 	private String notificationId;
 	
+	@JsonIgnore
+	private boolean visible;
+	
 	public Notification() {
 	}
 
@@ -54,6 +57,7 @@ public class Notification {
 		this.date = date;
 		this.dateAsString = date.toGMTString();
 		this.notificationId = UUID.randomUUID().toString();
+		this.visible = true;
 	}
 
 	@SuppressWarnings("deprecation")
@@ -63,6 +67,7 @@ public class Notification {
 		this.dateAsString = date.toGMTString();
 		this.message = TellNowUtils.getPayloadMessage(payload);
 		this.notificationId = UUID.randomUUID().toString();
+		this.visible = true;
 	}
 
 	@SuppressWarnings("deprecation")
@@ -73,6 +78,18 @@ public class Notification {
 		this.deviceToken = deviceToken;
 		this.message = TellNowUtils.getPayloadMessage(payload);
 		this.notificationId = UUID.randomUUID().toString();
+		this.visible = true;
+	}
+
+	@SuppressWarnings("deprecation")
+	public Notification(TellnowProfile profile, Date date, String deviceToken, String payload, boolean visible) {
+		this.profile = profile;
+		this.date = date;
+		this.dateAsString = date.toGMTString();
+		this.deviceToken = deviceToken;
+		this.message = TellNowUtils.getPayloadMessage(payload);
+		this.notificationId = UUID.randomUUID().toString();
+		this.visible = visible;
 	}
 
 	@SuppressWarnings("deprecation")
@@ -157,5 +174,12 @@ public class Notification {
 	public void setNotificationId(String notificationId) {
 		this.notificationId = notificationId;
 	}
-	
+
+	public boolean isVisible() {
+		return visible;
+	}
+
+	public void setVisible(boolean visible) {
+		this.visible = visible;
+	}
 }

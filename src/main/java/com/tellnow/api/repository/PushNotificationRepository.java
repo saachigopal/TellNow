@@ -10,13 +10,22 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tellnow.api.domain.Notification;
+import java.lang.String;
 
 public interface PushNotificationRepository extends JpaRepository<Notification, Long> {
 	List<Notification> findAll();
 	
+	@Modifying(clearAutomatically=true)
+	@Transactional
+	@Query(value = "UPDATE notification SET visible = b'0' WHERE notificationId=:notificationId AND profile_id=:profileId", nativeQuery = true)
+	int setInvisibleNotification(@Param("profileId") Long profileId, @Param("notificationId") String notificationId);
+	
 	@Query(value = "SELECT * FROM notification WHERE profile_id=:profileId ORDER BY date DESC", nativeQuery = true)
 	List<Notification> findByProfileIdDesc(@Param("profileId") Long profileId);
-	
+
+	@Query(value = "SELECT * FROM notification WHERE profile_id=:profileId and visible=b'1' ORDER BY date DESC", nativeQuery = true)
+	List<Notification> findVisibleOnesByProfileIdDesc(@Param("profileId") Long profileId);
+
 	@Query("SELECT n FROM Notification n WHERE n.date <  :date")
 	List<Notification> getNotificationsOlderThan(@Param("date") Date date);
 
