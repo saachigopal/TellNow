@@ -1,5 +1,6 @@
 package com.tellnow.api.controller;
 
+import java.util.Iterator;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -41,7 +42,8 @@ public class KnowledgeResponseController {
 	private static final long REWARD_POINTS = 3;
 	
 	public static final String MESSAGE_GOOD = "Response was good. You received 3 Appreciation points.";
-	public static final String MESSAGE_WRONG = "Response was incorrect. You did not receive any Appreciation Points.";
+//	public static final String MESSAGE_WRONG = "Response was incorrect. You did not receive any Appreciation Points.";
+	public static final String MESSAGE_WRONG = "Correct answer was: %s. You did not receive any Appreciation Points.";
 	public static final String MESSAGE_NOQUESTION = "Question does not exists.";
 	
 	@RequestMapping(value = "/api/knowledge/test/profile/{profileId}/submit", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
@@ -82,7 +84,8 @@ public class KnowledgeResponseController {
 						knowledgeQuestionService.updateRewardPoints(profilePrivateId, topicId, REWARD_POINTS);
 						resp.setMessage(MESSAGE_GOOD);
 					} else {
-						resp.setMessage(MESSAGE_WRONG);
+						String msg = String.format(MESSAGE_WRONG, formatCorrectAnswers(goodAnswers));
+						resp.setMessage(msg);
 					}
 				} else {
 					resp.setMessage(MESSAGE_NOQUESTION);
@@ -96,4 +99,20 @@ public class KnowledgeResponseController {
 		return new ResponseEntity<TellnowResponse>(resp, HttpStatus.OK);
 	}
 
+	private String formatCorrectAnswers(Set<KnowledgeAnswer> goodAnswers) {
+		String result = "NONE";
+		if (goodAnswers==null || goodAnswers.isEmpty()) {
+			return result;
+		}
+		Iterator<KnowledgeAnswer> it = goodAnswers.iterator();
+		if (goodAnswers.size()==1) {
+			result = it.next().getText();
+		} else {
+			result = it.next().getText();
+			while (it.hasNext()) {
+				result = result + ", " + it.next().getText();
+			}
+		}
+		return result;
+	}
 }
