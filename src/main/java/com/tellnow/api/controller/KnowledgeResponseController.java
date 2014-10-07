@@ -41,9 +41,9 @@ public class KnowledgeResponseController {
 	
 	private static final long REWARD_POINTS = 3;
 	
-	public static final String MESSAGE_GOOD = "Response was good.%nYou received 3 Appreciation points.";
+	public static final String MESSAGE_GOOD = "Response was good.<newline>You received 3 Appreciation points.";
 //	public static final String MESSAGE_WRONG = "Response was incorrect. You did not receive any Appreciation Points.";
-	public static final String MESSAGE_WRONG = "Correct answer is: %s.%nYou did not receive any Appreciation Points.";
+	public static final String MESSAGE_WRONG = "Correct answer is: %s.<newline>You did not receive any Appreciation Points.";
 	public static final String MESSAGE_NOQUESTION = "Question does not exists.";
 	
 	@RequestMapping(value = "/api/knowledge/test/profile/{profileId}/submit", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
