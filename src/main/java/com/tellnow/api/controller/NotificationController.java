@@ -47,7 +47,9 @@ public class NotificationController {
 	@RequestMapping(value = "/api/notification", method = RequestMethod.GET, produces = { MediaType.APPLICATION_JSON_VALUE })
 	@ApiOperation(value = "get all notification", notes = "return notifications of one user")
 	public @ResponseBody
-	ResponseEntity<TellnowResponse> getNotificationLogs(@RequestParam(value = "timestamp", required = false) Long newerThanInMillis) {
+	ResponseEntity<TellnowResponse> getNotificationLogs(
+			@RequestParam(value = "timestamp", required = false) Long newerThanInMillis,
+			@RequestParam(value = "howmany", required = false) Integer howMany) {
 		ResponseEntity<TellnowResponse> response = null;
 		TellnowResponse resp = new TellnowResponse();
 		List<Notification> logs = new ArrayList<Notification>();
@@ -56,6 +58,9 @@ public class NotificationController {
 		} else {
 			Date newerThan = new Date(newerThanInMillis);
 			logs = notificationRepository.findVisibleOnesByProfileIdNewerThanDesc(authService.getId(), newerThan);
+		}
+		if (howMany != null) {
+			logs = getFirstElementsFromList(logs, howMany);
 		}
 		resp.setMessage(logs);
 		response = new ResponseEntity<TellnowResponse>(resp, HttpStatus.OK);
@@ -81,5 +86,21 @@ public class NotificationController {
 		error.setError(new TellnowError(GlobalErrorCodes.internal_server_error.getErrorCode(), messages.getMessage(GlobalErrorCodes.internal_server_error.getErrorMessageCode(), null, Locale.getDefault())));
 		ResponseEntity<TellnowResponse> resp = new ResponseEntity<TellnowResponse>(error, HttpStatus.INTERNAL_SERVER_ERROR);
 		return resp;
+	}
+	
+	private <T> List<T> getFirstElementsFromList(List<T> input, int numberOfElements) {
+		List<T> result = new ArrayList<T>();
+		if (input==null) {
+			return null;
+		}
+		if (numberOfElements > input.size()) {
+			return input;
+		}
+		if (numberOfElements > 0) {
+			for (int i=0; i<numberOfElements; i++) {
+				result.add(input.get(i));
+			}
+		}
+		return result;
 	}
 }
