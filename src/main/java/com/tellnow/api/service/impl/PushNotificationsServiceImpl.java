@@ -8,12 +8,12 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.net.ssl.SSLHandshakeException;
-import javax.persistence.EntityManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,17 +21,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.relayrides.pushy.apns.ApnsEnvironment;
 import com.relayrides.pushy.apns.ExpiredToken;
+import com.relayrides.pushy.apns.ExpiredTokenListener;
 import com.relayrides.pushy.apns.FailedConnectionListener;
-import com.relayrides.pushy.apns.FeedbackConnectionException;
 import com.relayrides.pushy.apns.PushManager;
-import com.relayrides.pushy.apns.PushManagerFactory;
+import com.relayrides.pushy.apns.PushManagerConfiguration;
 import com.relayrides.pushy.apns.RejectedNotificationListener;
 import com.relayrides.pushy.apns.RejectedNotificationReason;
 import com.relayrides.pushy.apns.util.ApnsPayloadBuilder;
+import com.relayrides.pushy.apns.util.MalformedTokenStringException;
+import com.relayrides.pushy.apns.util.SSLContextUtil;
 import com.relayrides.pushy.apns.util.SimpleApnsPushNotification;
 import com.relayrides.pushy.apns.util.TokenUtil;
 import com.tellnow.api.domain.Answer;
@@ -48,7 +49,6 @@ import com.tellnow.api.service.DeviceService;
 import com.tellnow.api.service.PushNotificationsService;
 import com.tellnow.api.service.QuestionService;
 import com.tellnow.api.service.TellnowProfileService;
-import com.tellnow.api.utils.TellNowUtils;
 
 @Service
 @SuppressWarnings("unused")
@@ -65,7 +65,7 @@ public class PushNotificationsServiceImpl extends Thread implements PushNotifica
 	@Value("${notifications.notification.alowed.length}")
 	private int notificationAllowedLength;
 
-	@Value("classpath:/aps_production.p12")
+	@Value("classpath:/APNSProduction.p12")
 	private Resource cert;
 
 	@Autowired
@@ -120,34 +120,59 @@ public class PushNotificationsServiceImpl extends Thread implements PushNotifica
 	private static final String STATUS_SENT = "Sent";
 	private static final String STATUS_FAILED = "Failed";
 
-	private class APNSdNotificationListener implements RejectedNotificationListener<SimpleApnsPushNotification> {
-
-		public void handleRejectedNotification(final PushManager<? extends SimpleApnsPushNotification> pushManager, final SimpleApnsPushNotification notification, final RejectedNotificationReason reason) {
-			sanitazeIds(TokenUtil.tokenBytesToString(notification.getToken()));
+	private class APNSNotificationListener implements RejectedNotificationListener<SimpleApnsPushNotification> {
+		@Override
+		public void handleRejectedNotification(
+				PushManager<? extends SimpleApnsPushNotification> pushManager,
+				SimpleApnsPushNotification notification,
+				RejectedNotificationReason rejectionReason) {
+			System.out.format("%s was rejected with rejection reason %s\n", notification, rejectionReason);
+			sanitazeIds(TokenUtil.tokenBytesToString(notification.getToken()));			
 		}
 	}
 
 	private class APNSFailedConnectionListener implements FailedConnectionListener<SimpleApnsPushNotification> {
-
-		public void handleFailedConnection(final PushManager<? extends SimpleApnsPushNotification> pushManager, final Throwable cause) {
-			if (cause instanceof SSLHandshakeException) {
-				// This is probably a permanent failure, and we should shut down
-				// the PushManager.
-			}
+		@Override
+		public void handleFailedConnection(
+				PushManager<? extends SimpleApnsPushNotification> pushManager,
+				Throwable cause) {
+			logger.warn("--- Failed APNS connection!");
 		}
 	}
 
+	private class APNSExpiredTokensListener implements ExpiredTokenListener<SimpleApnsPushNotification> {
+
+		@Override
+		public void handleExpiredTokens(
+				PushManager<? extends SimpleApnsPushNotification> arg0,
+				Collection<ExpiredToken> arg1) {
+			logger.warn("--- Expired APNS tokens!");
+		}
+		
+	}
+	
 	@PostConstruct
 	private void constructApnsService() throws FileNotFoundException, IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException {
-		final PushManagerFactory<SimpleApnsPushNotification> pushManagerFactory = new PushManagerFactory<SimpleApnsPushNotification>(ApnsEnvironment.getProductionEnvironment(), PushManagerFactory.createDefaultSSLContext(cert.getFile().getAbsolutePath(), apnsPassword));
+		
+		pushManager = new PushManager<SimpleApnsPushNotification>(
+							ApnsEnvironment.getProductionEnvironment(),
+							SSLContextUtil.createDefaultSSLContext(cert.getFile().getAbsolutePath(), apnsPassword),
+							null, // Optional: custom event loop group
+							null, // Optional: custom ExecutorService for calling listeners
+							null, // Optional: custom BlockingQueue implementation
+							new PushManagerConfiguration(),
+							"Tellnow PushManager");
+		
+		//final PushManagerFactory<SimpleApnsPushNotification> pushManagerFactory = new PushManagerFactory<SimpleApnsPushNotification>(ApnsEnvironment.getProductionEnvironment(), PushManagerFactory.createDefaultSSLContext(cert.getFile().getAbsolutePath(), apnsPassword));
 
-		pushManager = pushManagerFactory.buildPushManager();
-		pushManager.registerRejectedNotificationListener(new APNSdNotificationListener());
+		//pushManager = pushManagerFactory.buildPushManager();
+		pushManager.registerRejectedNotificationListener(new APNSNotificationListener());
 		pushManager.registerFailedConnectionListener(new APNSFailedConnectionListener());
+		pushManager.registerExpiredTokenListener(new APNSExpiredTokensListener());
 		pushManager.start();
 	}
 
-	public void notifyQuestion(List<TellnowProfile> profiles, Question question) throws InvalidDeviceException {
+	public void notifyQuestion(List<TellnowProfile> profiles, Question question) throws InvalidDeviceException, MalformedTokenStringException {
 		for (TellnowProfile profile : profiles) {
 			Notification notification = new Notification(profile, new Date()); 
 			notification.setText(question.getQuestionText());
@@ -168,7 +193,7 @@ public class PushNotificationsServiceImpl extends Thread implements PushNotifica
 		}
 	}
 
-	public void notifyAnswer(Answer answer) throws InvalidDeviceException {
+	public void notifyAnswer(Answer answer) throws InvalidDeviceException, MalformedTokenStringException {
 		List<Device> devices = new ArrayList<Device>();
 
 		if (answer != null && answer.getQuestion() != null && answer.getQuestion().getOwner() != null) {
@@ -192,7 +217,7 @@ public class PushNotificationsServiceImpl extends Thread implements PushNotifica
 		}
 	}
 
-	public void notifyRewardPoints(AnswerReward reward) throws InvalidDeviceException {
+	public void notifyRewardPoints(AnswerReward reward) throws InvalidDeviceException, MalformedTokenStringException {
 		long questionId = reward.getId().getQuestionId();
 		double value = reward.getValue();
 		Question question = questionService.getQuestion(questionId);
@@ -238,7 +263,7 @@ public class PushNotificationsServiceImpl extends Thread implements PushNotifica
 		}
 	}
 
-	public void notifyChat(Chat chat) throws InvalidDeviceException {
+	public void notifyChat(Chat chat) throws InvalidDeviceException, MalformedTokenStringException {
 		if (chat != null && chat.getSendee() != null) {
 			Notification notification = new Notification(chat.getSendee(), new Date());
 			notification.setText(chat.getMessage());
@@ -262,7 +287,7 @@ public class PushNotificationsServiceImpl extends Thread implements PushNotifica
 		}
 	}
 
-	private void send(Notification notification) {				
+	private void send(Notification notification) throws MalformedTokenStringException {				
 		if (notification!=null && notification.getDeviceToken() != null) {
 
 			final byte[] token = TokenUtil.tokenStringToByteArray("<" + notification.getDeviceToken() + ">");
@@ -285,20 +310,20 @@ public class PushNotificationsServiceImpl extends Thread implements PushNotifica
 	}
 
 	private void removeExpiredTokens(List<Device> devices) {
-		if (devices != null && devices.size() > 0) {
-			try {
-				for (final ExpiredToken expiredToken : pushManager.getExpiredTokens()) {
-					// Stop sending push notifications to each expired token if the expiration
-					// time is after the last time the app registered that token..
-					// System.out.println(">>>>expired token : " + TokenUtil.tokenBytesToString(expiredToken.getToken()));
-					sanitazeIds(devices, TokenUtil.tokenBytesToString(expiredToken.getToken()));
-				}
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			} catch (FeedbackConnectionException e) {
-				e.printStackTrace();
-			}
-		}
+//		if (devices != null && devices.size() > 0) {
+//			try {
+//				for (final ExpiredToken expiredToken : pushManager.getExpiredTokens()) {
+//					// Stop sending push notifications to each expired token if the expiration
+//					// time is after the last time the app registered that token..
+//					// System.out.println(">>>>expired token : " + TokenUtil.tokenBytesToString(expiredToken.getToken()));
+//					sanitazeIds(devices, TokenUtil.tokenBytesToString(expiredToken.getToken()));
+//				}
+//			} catch (InterruptedException e) {
+//				e.printStackTrace();
+//			} catch (FeedbackConnectionException e) {
+//				e.printStackTrace();
+//			}
+//		}
 	}
 
 	private void sanitazeIds(List<Device> devices, String idToRemove) {

@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import com.relayrides.pushy.apns.util.MalformedTokenStringException;
 import com.tellnow.api.domain.Question;
 import com.tellnow.api.domain.TellnowProfile;
 import com.tellnow.api.domain.Topic;
@@ -46,7 +47,7 @@ public class NotificationServiceImpl implements NotificationService {
 	RewardPointsRepository rewardPointsRepository;
 
 	@Override
-	public Set<Long> nomineeRespondersforQuestion(Question question, Integer usersNr) throws InvalidDeviceException {
+	public Set<Long> nomineeRespondersforQuestion(Question question, Integer usersNr) throws InvalidDeviceException, MalformedTokenStringException {
 		logger.info("nomineeRespondersforQuestion: " + usersNr);
 		Topic topic = question.getTopic();
 		if (topic.getName() == null) {
@@ -119,7 +120,7 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 	@Override
-	public boolean notifyResponderCandidates(Set<TellnowProfile> candidates, Question question) throws InvalidDeviceException {
+	public boolean notifyResponderCandidates(Set<TellnowProfile> candidates, Question question) throws InvalidDeviceException, MalformedTokenStringException {
 		List<TellnowProfile> tellnowProfiles = new ArrayList<TellnowProfile>();
 		for (Iterator<TellnowProfile> iterator = candidates.iterator(); iterator.hasNext();) {
 			TellnowProfile tellnowProfile = iterator.next();

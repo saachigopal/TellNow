@@ -25,6 +25,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.relayrides.pushy.apns.util.MalformedTokenStringException;
 import com.tellnow.api.domain.Answer;
 import com.tellnow.api.domain.Answer.Status;
 import com.tellnow.api.domain.AnswerReward;
@@ -121,7 +122,7 @@ public class AnswerServiceImpl implements AnswerService {
 	}
 
 	@Override
-	public Answer addAnswer(Answer answer) throws QuestionMissingException, QuestionExpiredException, QuestionAnswerLimitException, InvalidDeviceException, DuplicateAnswerException{
+	public Answer addAnswer(Answer answer) throws QuestionMissingException, QuestionExpiredException, QuestionAnswerLimitException, InvalidDeviceException, DuplicateAnswerException, MalformedTokenStringException{
 
 		if (answer.getQuestion() == null) {
 			throw new QuestionMissingException("Missing question", 0);
@@ -171,7 +172,7 @@ public class AnswerServiceImpl implements AnswerService {
 	}
 
 	@Override
-	public Answer addAnswer(Long questionId, Answer answer) throws QuestionMissingException, QuestionExpiredException, QuestionAnswerLimitException, InvalidDeviceException, DuplicateAnswerException {
+	public Answer addAnswer(Long questionId, Answer answer) throws QuestionMissingException, QuestionExpiredException, QuestionAnswerLimitException, InvalidDeviceException, DuplicateAnswerException, MalformedTokenStringException {
 
 		Question question = new Question();
 		question.setId(questionId);
@@ -180,7 +181,7 @@ public class AnswerServiceImpl implements AnswerService {
 	}
 
 	@Override
-	public Answer addAnswer(Question question, Answer answer) throws QuestionMissingException, QuestionExpiredException, QuestionAnswerLimitException, InvalidDeviceException, DuplicateAnswerException {
+	public Answer addAnswer(Question question, Answer answer) throws QuestionMissingException, QuestionExpiredException, QuestionAnswerLimitException, InvalidDeviceException, DuplicateAnswerException, MalformedTokenStringException {
 		answer.setQuestion(question);
 		return addAnswer(answer);
 	}
@@ -215,7 +216,7 @@ public class AnswerServiceImpl implements AnswerService {
 	}
 
 	@Override
-	public boolean reward(String publicId, Integer rewardpoints, Status status, boolean feedbackNotif) throws InvalidDeviceException {
+	public boolean reward(String publicId, Integer rewardpoints, Status status, boolean feedbackNotif) throws InvalidDeviceException, MalformedTokenStringException {
 
 		Answer answer = getAnswer(publicId);
 		// hard coded the value - request by project manager
@@ -223,7 +224,7 @@ public class AnswerServiceImpl implements AnswerService {
 	}
 
 	@Override
-	public boolean reward(Answer answer, Integer rewardpoints, Status status, boolean feedbackNotif) throws InvalidDeviceException {
+	public boolean reward(Answer answer, Integer rewardpoints, Status status, boolean feedbackNotif) throws InvalidDeviceException, MalformedTokenStringException {
 
 		AnswerReward reward = new AnswerReward();
 		AnswerRewardKey id = new AnswerRewardKey();

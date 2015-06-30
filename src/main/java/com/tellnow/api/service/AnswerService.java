@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.springframework.data.domain.Page;
 
+import com.relayrides.pushy.apns.util.MalformedTokenStringException;
 import com.tellnow.api.domain.Answer;
 import com.tellnow.api.domain.Answer.Status;
 import com.tellnow.api.domain.Question;
@@ -29,11 +30,11 @@ public interface AnswerService {
 	
 	Page<Answer> getAnswers(Integer pageNumber, SortAnswersBy creationDate);
 
-	Answer addAnswer(Answer answer) throws QuestionMissingException, QuestionExpiredException, QuestionAnswerLimitException, InvalidDeviceException, DuplicateAnswerException;
+	Answer addAnswer(Answer answer) throws QuestionMissingException, QuestionExpiredException, QuestionAnswerLimitException, InvalidDeviceException, DuplicateAnswerException, MalformedTokenStringException;
 
-	Answer addAnswer(Long questionId, Answer answer) throws QuestionMissingException, QuestionExpiredException, QuestionAnswerLimitException, InvalidDeviceException, DuplicateAnswerException;
+	Answer addAnswer(Long questionId, Answer answer) throws QuestionMissingException, QuestionExpiredException, QuestionAnswerLimitException, InvalidDeviceException, DuplicateAnswerException, MalformedTokenStringException;
 
-	Answer addAnswer(Question question, Answer answer) throws QuestionMissingException, QuestionExpiredException, QuestionAnswerLimitException, InvalidDeviceException, DuplicateAnswerException;
+	Answer addAnswer(Question question, Answer answer) throws QuestionMissingException, QuestionExpiredException, QuestionAnswerLimitException, InvalidDeviceException, DuplicateAnswerException, MalformedTokenStringException;
 
 	Answer delete(String publicId);
 
@@ -41,9 +42,9 @@ public interface AnswerService {
 
 	boolean delete(Answer answer);
 
-	boolean reward(Answer answer, Integer rewardpoints, Status status,  boolean feedbackNotif) throws InvalidDeviceException;
+	boolean reward(Answer answer, Integer rewardpoints, Status status,  boolean feedbackNotif) throws InvalidDeviceException, MalformedTokenStringException;
 
-	boolean reward(String answerPublicId, Integer rewardpoints, Status status,  boolean feedbackNotif) throws InvalidDeviceException;
+	boolean reward(String answerPublicId, Integer rewardpoints, Status status,  boolean feedbackNotif) throws InvalidDeviceException, MalformedTokenStringException;
 
 	Double getRewardPoints();
 	
