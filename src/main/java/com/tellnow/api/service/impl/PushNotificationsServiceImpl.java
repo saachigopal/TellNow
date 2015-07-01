@@ -126,7 +126,7 @@ public class PushNotificationsServiceImpl extends Thread implements PushNotifica
 				PushManager<? extends SimpleApnsPushNotification> pushManager,
 				SimpleApnsPushNotification notification,
 				RejectedNotificationReason rejectionReason) {
-			System.out.format("%s was rejected with rejection reason %s\n", notification, rejectionReason);
+			logger.warn("%s was rejected with rejection reason %s\n", notification, rejectionReason);
 			sanitazeIds(TokenUtil.tokenBytesToString(notification.getToken()));			
 		}
 	}
@@ -144,9 +144,16 @@ public class PushNotificationsServiceImpl extends Thread implements PushNotifica
 
 		@Override
 		public void handleExpiredTokens(
-				PushManager<? extends SimpleApnsPushNotification> arg0,
-				Collection<ExpiredToken> arg1) {
-			logger.warn("--- Expired APNS tokens!");
+				PushManager<? extends SimpleApnsPushNotification> pm,
+				Collection<ExpiredToken> expiredTokens) {
+			logger.info("--- Expired APNS tokens listener started!");
+			if (expiredTokens!=null && !expiredTokens.isEmpty()) {
+				logger.warn("--- Expired APNS tokens found!");
+				for (ExpiredToken expiredToken : expiredTokens) {
+					logger.warn("----- " + TokenUtil.tokenBytesToString(expiredToken.getToken()));
+					sanitazeIds(TokenUtil.tokenBytesToString(expiredToken.getToken()));
+				}
+			}
 		}
 		
 	}
@@ -170,6 +177,7 @@ public class PushNotificationsServiceImpl extends Thread implements PushNotifica
 		pushManager.registerFailedConnectionListener(new APNSFailedConnectionListener());
 		pushManager.registerExpiredTokenListener(new APNSExpiredTokensListener());
 		pushManager.start();
+		pushManager.requestExpiredTokens();
 	}
 
 	public void notifyQuestion(List<TellnowProfile> profiles, Question question) throws InvalidDeviceException, MalformedTokenStringException {
